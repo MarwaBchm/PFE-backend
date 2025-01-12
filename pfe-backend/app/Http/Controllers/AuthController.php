@@ -50,7 +50,6 @@ class AuthController extends Controller
 
         // Get the authenticated user
         $user = auth()->user();
-Log::info("generated token: $token");
         // Return the token and user details
         return response()->json([
             'token' => $token, // This is the valid JWT token
