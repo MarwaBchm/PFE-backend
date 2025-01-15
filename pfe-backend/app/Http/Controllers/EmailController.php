@@ -9,14 +9,12 @@ class EmailController extends Controller
 {
     public function sendEmail()
     {
-        // Define the recipient's email and data
-        $email = 'bentoumimeriem21@gmail.com'; // Replace with the recipient's email
+        $email = 'bentoumimeriem21@gmail.com'; // Replace with the actual email address
         $data = [
-            'name' => 'Recipient Name', // Replace with the recipient's name
+            'name' => 'Recipient Name',
             'message' => 'This is your notification message.',
         ];
 
-        // Send the email using the UserNotification Mailable
         try {
             Mail::to($email)->send(new UserNotification($data));
             return "Email sent successfully to $email!";
