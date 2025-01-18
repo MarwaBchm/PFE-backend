@@ -11,6 +11,8 @@ use App\Models\Professor;
 use App\Models\Company;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log; // For logging
+use App\Mail\UserCreatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -38,7 +40,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
-
+        Mail::to($user->email)->send(new UserCreatedMail($user, $request->password));
         // Log the user creation
         Log::info('User created:', $user->toArray());
 

@@ -10,6 +10,8 @@ use App\Models\Student;
 use App\Models\Professor;
 use App\Models\Company;
 use Illuminate\Support\Facades\Log;
+use App\Mail\UserCreatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class BulkUserController extends Controller
 {
@@ -66,7 +68,7 @@ class BulkUserController extends Controller
                 'password' => Hash::make($rowData['password']),
                 'role' => $rowData['role'],
             ]);
-
+            Mail::to($user->email)->send(new UserCreatedMail($user, $rowData['password']));
             // Create role-specific records
             switch ($rowData['role']) {
                 case 'student':
