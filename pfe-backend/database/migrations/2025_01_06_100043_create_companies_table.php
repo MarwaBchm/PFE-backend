@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('professor', function (Blueprint $table) {
+        Schema::create('companies', function (Blueprint $table) {
             $table->id(); // Auto-incrementing primary key
-            $table->string('firstname'); // Professor's first name
-            $table->string('lastname'); // Professor's last name
+            $table->string('firstname'); // First name of the contact person
+            $table->string('lastname');  // Last name of the contact person
+            $table->string('denomination'); // Company name
             $table->unsignedBigInteger('user_id'); // Foreign key to the users table
             $table->timestamps(); // Created at and updated at timestamps
 
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('professor');
+        Schema::dropIfExists('companies');
     }
 };

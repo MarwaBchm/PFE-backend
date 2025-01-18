@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator; // Add this line
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use App\Models\Student;
+use App\Models\Professor;
+use App\Models\Company;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Log; // For logging
 
 class AuthController extends Controller
 {
@@ -14,11 +18,19 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         // Validate the request
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:teacher,student,admin', // Validate role
+            'role' => 'required|in:student,professor,company', // Validate role
+            'firstname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
+            'lastname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
+            'denomination' => 'required_if:role,company', // Required for companies
         ]);
+
+        // If validation fails, return errors
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         // Create the user
         $user = User::create([
@@ -26,6 +38,42 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
+        // Log the user creation
+        Log::info('User created:', $user->toArray());
+
+        // Create role-specific records
+        switch ($request->role) {
+            case 'student':
+                Student::create([
+                    'firstname' => $request->firstname,
+                    'lastname' => $request->lastname,
+                    'user_id' => $user->id,
+                ]);
+                break;
+
+            case 'professor':
+                Professor::create([
+                    'firstname' => $request->firstname,
+                    'lastname' => $request->lastname,
+                    'user_id' => $user->id,
+                ]);
+                break;
+
+            case 'company':
+                try {
+                    Company::create([
+                        'firstname' => $request->firstname,
+                        'lastname' => $request->lastname,
+                        'denomination' => $request->denomination,
+                        'user_id' => $user->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to create company:', ['error' => $e->getMessage()]);
+                    return response()->json(['message' => 'Failed to create company record'], 500);
+                }
+                break;
+        }
 
         // Return a response
         return response()->json([
@@ -56,11 +104,11 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
-                'username' => $user->username,
                 'role' => $user->role,
             ],
         ]);
     }
+
     // Logout method
     public function logout(Request $request)
     {
