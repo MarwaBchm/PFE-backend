@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -140,6 +140,7 @@
                                         Laravel News is a community driven portal and newsletter aggregating all of the latest and most important news in the Laravel ecosystem, including new package releases and tutorials.
                                     </p>
                                 </div>
+                                
 
                                 <svg class="size-6 shrink-0 self-center stroke-[#FF2D20]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/></svg>
                             </a>
@@ -173,4 +174,28 @@
             </div>
         </div>
     </body>
+</html> --}}
+{{-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome Email</title>
+</head>
+<body>
+    @if(isset($user))
+        <h1>Welcome, {{ $user->name }}!</h1>
+        <p>Thank you for joining our application.</p>
+    @else
+        <h1>Error: User not found!</h1>
+    @endif
+</body>
+</html> --}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome Email</title>
+</head>
+<body>
+    <h1>Welcome, {{ $user->name }}!</h1>
+    <p>Thank you for joining our application.</p>
+</body>
 </html>
