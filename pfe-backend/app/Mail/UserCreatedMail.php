@@ -6,7 +6,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log; // Add this line
 
 class UserCreatedMail extends Mailable
 {
@@ -14,18 +13,21 @@ class UserCreatedMail extends Mailable
 
     public $user;
     public $password;
+    public $username;
 
     /**
      * Create a new message instance.
      *
      * @param  \App\Models\User  $user
      * @param  string  $password
+     * @param  string  $username
      * @return void
      */
-    public function __construct($user, $password)
+    public function __construct($user, $password, $username)
     {
         $this->user = $user;
         $this->password = $password;
+        $this->username = $username;
     }
 
     /**
@@ -35,7 +37,6 @@ class UserCreatedMail extends Mailable
      */
     public function build()
     {
-        Log::info('Sending email to: ' . $this->user->email); // Log the email address
         return $this->subject('Welcome to ' . config('app.name'))
                     ->view('emails.user_created');
     }

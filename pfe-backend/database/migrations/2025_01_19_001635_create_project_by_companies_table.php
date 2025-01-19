@@ -11,19 +11,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('majors', function (Blueprint $table) {
+        Schema::create('project_by_companies', function (Blueprint $table) {
             $table->id();
-            $table->string('abbreviation');
-            $table->string('denomination');
-            $table->foreignId('responsible_id')->constrained('professors')->onDelete('cascade');
+            $table->foreignId('id_company')->constrained('companies')->onDelete('cascade');
             $table->timestamps();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('majors');
+        Schema::dropIfExists('project_by_companies');
     }
 };

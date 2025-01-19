@@ -9,22 +9,18 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('professors', function (Blueprint $table) {
-            $table->id(); // Auto-incrementing primary key
-            $table->string('firstname'); // Professor's first name
-            $table->string('lastname'); // Professor's last name
-            $table->unsignedBigInteger('user_id'); // Foreign key to the users table
-            $table->timestamps(); // Created at and updated at timestamps
-
-            // Define the foreign key constraint
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade'); // Cascade deletes if the referenced user is deleted
-        });
-    }
+    public function up()
+{
+    Schema::create('professors', function (Blueprint $table) {
+        $table->id();
+        $table->string('firstname');
+        $table->string('lastname');
+        $table->string('grade');
+        $table->date('recruitment_date');
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

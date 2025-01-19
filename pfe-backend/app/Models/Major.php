@@ -9,21 +9,19 @@ class Major extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
-        'name', // Name of the major
-        'abbreviation', // Abbreviation of the major
+        'abbreviation',
+        'denomination',
+        'responsible_id',
     ];
 
-    /**
-     * Get the master responsibles for the major.
-     */
+    public function responsible()
+    {
+        return $this->belongsTo(Professor::class, 'responsible_id');
+    }
+
     public function masterResponsibles()
     {
-        return $this->hasMany(MasterResponsible::class);
+        return $this->hasOne(MasterResponsible::class);
     }
 }

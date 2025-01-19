@@ -9,25 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+   public function up()
 {
-    Schema::create('students', function (Blueprint $table) {
+    Schema::create('projects', function (Blueprint $table) {
         $table->id();
-        $table->string('firstname');
-        $table->string('lastname');
+        $table->string('intitule');
+        $table->text('resume');
+        $table->json('techs'); // Store techs as JSON array
         $table->foreignId('option_id')->constrained()->onDelete('cascade');
-        $table->float('master_average');
-        $table->integer('ranking');
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->timestamps();
     });
 }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('projects');
     }
 };

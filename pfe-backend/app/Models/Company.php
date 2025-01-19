@@ -9,21 +9,15 @@ class Company extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
-        'firstname', // First name of the contact person
-        'lastname',  // Last name of the contact person
-        'denomination', // Company name
-        'user_id',   // Foreign key to the users table
+        'firstname',
+        'lastname',
+        'denomination',
+        'contact',
+        'type',
+        'user_id',
     ];
 
-    /**
-     * Get the user that owns the company.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

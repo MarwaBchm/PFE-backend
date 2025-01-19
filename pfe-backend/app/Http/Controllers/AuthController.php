@@ -12,6 +12,7 @@ use App\Models\Company;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log; // For logging
 use App\Mail\UserCreatedMail;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
@@ -22,7 +23,6 @@ class AuthController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
             'role' => 'required|in:student,professor,company', // Validate role
             'firstname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
             'lastname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
@@ -34,13 +34,26 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Generate a random password
+        $password = Str::password(12); // Generates a 12-character random password
+
+        // Generate a username (e.g., firstname.lastname)
+        $username = Str::slug($request->firstname . '.' . $request->lastname, '.');
+
+        // Ensure the username is unique
+        $username = $this->makeUsernameUnique($username);
+
         // Create the user
         $user = User::create([
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'username' => $username, // Add the generated username
+            'password' => Hash::make($password), // Use the generated password
             'role' => $request->role,
         ]);
-        Mail::to($user->email)->send(new UserCreatedMail($user, $request->password));
+
+        // Send welcome email with the generated password and username
+        Mail::to($user->email)->send(new UserCreatedMail($user, $password, $username));
+
         // Log the user creation
         Log::info('User created:', $user->toArray());
 
@@ -83,7 +96,25 @@ class AuthController extends Controller
             'user' => $user,
         ], 201);
     }
+    /**
+     * Ensure the username is unique by appending a number if necessary.
+     *
+     * @param string $username
+     * @return string
+     */
+    private function makeUsernameUnique($username)
+    {
+        $originalUsername = $username;
+        $counter = 1;
 
+        // Check if the username already exists
+        while (User::where('username', $username)->exists()) {
+            $username = $originalUsername . '.' . $counter;
+            $counter++;
+        }
+
+        return $username;
+    }
     // Login method
     public function login(Request $request)
     {

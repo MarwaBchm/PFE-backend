@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('majors', function (Blueprint $table) {
+        Schema::create('pfe_choix_students', function (Blueprint $table) {
             $table->id();
-            $table->string('abbreviation');
-            $table->string('denomination');
-            $table->foreignId('responsible_id')->constrained('professors')->onDelete('cascade');
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->tinyInteger('nombre_de_choix')->unsigned()->check('nombre_de_choix < 10');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('majors');
+        Schema::dropIfExists('pfe_choix_students');
     }
 };

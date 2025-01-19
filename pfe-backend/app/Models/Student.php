@@ -9,22 +9,37 @@ class Student extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
         'firstname',
         'lastname',
+        'option_id',
+        'groupe_id',
+        'master_average',
+        'ranking',
         'user_id',
     ];
 
-    /**
-     * Get the user that owns the student.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
+    public function option()
+    {
+        return $this->belongsTo(Option::class);
+    }
+
+    public function groupe()
+    {
+        return $this->belongsTo(Groupe::class);
+    }
+    public function pfeChoixStudents()
+{
+    return $this->hasMany(PFEChoixStudent::class, 'student_id');
+}
+
+public function encadrantChoixStudents()
+{
+    return $this->hasMany(EncadrantChoixStudent::class, 'student_id');
+}
 }

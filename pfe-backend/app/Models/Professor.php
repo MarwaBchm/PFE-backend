@@ -9,27 +9,40 @@ class Professor extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
         'firstname',
         'lastname',
+        'grade',
+        'recruitment_date',
         'user_id',
     ];
 
-    /**
-     * Get the user that owns the professor.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function masterResponsibles()
+    {
+        return $this->hasMany(MasterResponsible::class);
+    }
+    public function projectByProfessors()
 {
-    return $this->hasMany(MasterResponsible::class);
+    return $this->hasMany(ProjectByProfessor::class, 'id_prof');
 }
 
+public function encadrantChoixStudents()
+{
+    return $this->hasMany(EncadrantChoixStudent::class, 'prof_id');
+}
+
+public function encadrantChoixProfs()
+{
+    return $this->hasMany(EncadrantChoixProf::class, 'prof_id');
+}
+
+public function juryChoixProfs()
+{
+    return $this->hasMany(JuryChoixProf::class, 'prof_id');
+}
 }
