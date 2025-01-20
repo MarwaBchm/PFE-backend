@@ -8,5 +8,6 @@ Route::get('/send-email', [EmailController::class, 'sendEmail']);
 // Route::get('/send-email', [Controller::class, 'sendEmail']);
 
 Route::get('/', function () {
-    return view('welcome');
+    return 'Welcome to Laravel!';
 });
+// Route::get('/', [App\Http\Controllers\EmailController::class, 'sendEmail']);
