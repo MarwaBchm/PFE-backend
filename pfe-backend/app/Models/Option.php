@@ -12,6 +12,7 @@ class Option extends Model
     protected $fillable = [
         'name',
         'abbreviation',
+        'id_responsible',
     ];
 
     public function students()

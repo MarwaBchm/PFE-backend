@@ -11,9 +11,10 @@ use App\Http\Controllers\ProfessorController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/bulk-import-users', [BulkUserController::class, 'importUsersFromCSV']);
-Route::apiResource('options', OptionController::class); // Public options routes
 Route::apiResource('students', StudentController::class);
 Route::apiResource('professors', ProfessorController::class);
+Route::apiResource('options', OptionController::class);
+
 
 
 // Protected routes
