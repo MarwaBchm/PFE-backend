@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator; // Add this line
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Professor;
 use App\Models\Company;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Log; // For logging
+use Illuminate\Support\Facades\Log;
 use App\Mail\UserCreatedMail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -23,10 +23,15 @@ class AuthController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
-            'role' => 'required|in:student,professor,company', // Validate role
-            'firstname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
-            'lastname' => 'required_if:role,student,professor,company', // Required for students, professors, and companies
-            'denomination' => 'required_if:role,company', // Required for companies
+            'role' => 'required|in:student,professor,company',
+            'firstname' => 'required_if:role,student,professor,company',
+            'lastname' => 'required_if:role,student,professor,company',
+            'denomination' => 'required_if:role,company',
+            'grade' => 'required_if:role,professor', // Required for professors
+            'recruitment_date' => 'required_if:role,professor|date', // Ensure it's a valid date
+            'contact' => 'required_if:role,company',
+            'type' => 'required_if:role,company',
+            'master_average' => 'required_if:role,student|numeric|min:0|max:20',
         ]);
 
         // If validation fails, return errors
@@ -46,8 +51,8 @@ class AuthController extends Controller
         // Create the user
         $user = User::create([
             'email' => $request->email,
-            'username' => $username, // Add the generated username
-            'password' => Hash::make($password), // Use the generated password
+            'username' => $username,
+            'password' => Hash::make($password),
             'role' => $request->role,
         ]);
 
@@ -63,6 +68,8 @@ class AuthController extends Controller
                 Student::create([
                     'firstname' => $request->firstname,
                     'lastname' => $request->lastname,
+                    'master_average' => $request->master_average,
+                    'ranking' => 0,
                     'user_id' => $user->id,
                 ]);
                 break;
@@ -71,24 +78,26 @@ class AuthController extends Controller
                 Professor::create([
                     'firstname' => $request->firstname,
                     'lastname' => $request->lastname,
+                    'grade' => $request->grade,
+                    'recruitment_date' => $request->recruitment_date,
                     'user_id' => $user->id,
                 ]);
                 break;
 
             case 'company':
-                try {
-                    Company::create([
-                        'firstname' => $request->firstname,
-                        'lastname' => $request->lastname,
-                        'denomination' => $request->denomination,
-                        'user_id' => $user->id,
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to create company:', ['error' => $e->getMessage()]);
-                    return response()->json(['message' => 'Failed to create company record'], 500);
-                }
+                Company::create([
+                    'firstname' => $request->firstname,
+                    'lastname' => $request->lastname,
+                    'denomination' => $request->denomination,
+                    'contact' => $request->contact,
+                    'type' => $request->type,
+                    'user_id' => $user->id,
+                ]);
                 break;
         }
+
+        // Calculate and update rankings for students
+        $this->updateStudentRankings();
 
         // Return a response
         return response()->json([
@@ -96,6 +105,7 @@ class AuthController extends Controller
             'user' => $user,
         ], 201);
     }
+
     /**
      * Ensure the username is unique by appending a number if necessary.
      *
@@ -115,6 +125,23 @@ class AuthController extends Controller
 
         return $username;
     }
+
+    /**
+     * Calculate and update rankings for all students based on their master_average.
+     */
+    private function updateStudentRankings()
+    {
+        // Fetch all students ordered by master_average (descending)
+        $students = Student::orderBy('master_average', 'desc')->get();
+
+        // Update rankings
+        $ranking = 1;
+        foreach ($students as $student) {
+            $student->update(['ranking' => $ranking]);
+            $ranking++;
+        }
+    }
+
     // Login method
     public function login(Request $request)
     {
@@ -131,13 +158,15 @@ class AuthController extends Controller
 
         // Get the authenticated user
         $user = auth()->user();
+
         // Return the token and user details
         return response()->json([
-            'token' => $token, // This is the valid JWT token
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
                 'role' => $user->role,
+                'username' => $user->username,
             ],
         ]);
     }
@@ -153,6 +182,22 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = auth()->user();
+
+        // Load role-specific data based on the user's role
+        switch ($user->role) {
+            case 'student':
+                $user->load('student');
+                break;
+
+            case 'professor':
+                $user->load('professor'); // Load professor data
+                break;
+
+            case 'company':
+                $user->load('company');
+                break;
+        }
+
         return response()->json($user);
     }
 }
