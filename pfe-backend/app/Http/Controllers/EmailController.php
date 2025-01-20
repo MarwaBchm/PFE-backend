@@ -1,25 +1,17 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Mail\UserNotification;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\Request;
 
 class EmailController extends Controller
 {
-    public function sendEmail()
+    public function sendTestEmail()
     {
-        $email = 'bentoumimeriem21@gmail.com'; // Replace with the actual email address
-        $data = [
-            'name' => 'Recipient Name',
-            'message' => 'This is your notification message.',
-        ];
+        Mail::raw('This is a test email.', function ($message) {
+            $message->to('meribentoumi@gmail.com')->subject('Test Email');
+        });
 
-        try {
-            Mail::to($email)->send(new UserNotification($data));
-            return "Email sent successfully to $email!";
-        } catch (\Exception $e) {
-            return "Failed to send email: " . $e->getMessage();
-        }
+        return "Test email sent!";
     }
 }

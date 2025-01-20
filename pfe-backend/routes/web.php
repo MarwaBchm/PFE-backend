@@ -1,13 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EmailController;
+// use Illuminate\Support\Facades\Route;
+// use App\Http\Controllers\EmailController;
 
-Route::get('/send-email', [EmailController::class, 'sendEmail']);
+use Illuminate\Support\Facades\Mail;
 
-// Route::get('/send-email', [Controller::class, 'sendEmail']);
+Route::get('send-test-email', function () {
+    Mail::raw('This is a test email.', function ($message) {
+        $message->to('recipient@example.com')->subject('Test Email');
+    });
 
-Route::get('/', function () {
-    return 'Welcome to Laravel!';
+    return "Test email sent!";
 });
-// Route::get('/', [App\Http\Controllers\EmailController::class, 'sendEmail']);
