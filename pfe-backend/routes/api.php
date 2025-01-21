@@ -8,7 +8,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\GroupeController;
-
+use App\Http\Controllers\PhaseController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -18,7 +18,7 @@ Route::apiResource('students', StudentController::class);
 Route::apiResource('professors', ProfessorController::class);
 Route::apiResource('options', OptionController::class);
 Route::apiResource('companies', CompanyController::class);
-
+Route::apiResource('phases', PhaseController::class);
 // Check if a student is part of a groupe
 Route::get('/groupes/check/{studentId}', [GroupeController::class, 'checkGroupe']);
 

@@ -133,7 +133,7 @@ Log::info("mohahaha");
 
         // Calculate the groupe master average
         $groupeMasterAverage = ($student1->master_average + $student2->master_average) / 2;
-        Log::info("may bee here's the issue ?");
+        Log::info("may bee here's the issue     ?");
 
         // Create the groupe
         $groupe = Groupe::create([
