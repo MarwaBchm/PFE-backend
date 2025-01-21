@@ -6,14 +6,18 @@ use App\Http\Controllers\BulkUserController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ProfessorController;
+use App\Http\Controllers\CompanyController;
+
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register']);
 Route::post('/bulk-import-users', [BulkUserController::class, 'importUsersFromCSV']);
 Route::apiResource('students', StudentController::class);
 Route::apiResource('professors', ProfessorController::class);
 Route::apiResource('options', OptionController::class);
+Route::apiResource('companies', CompanyController::class);
+
 
 
 
