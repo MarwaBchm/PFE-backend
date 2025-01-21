@@ -7,6 +7,7 @@ use App\Http\Controllers\OptionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\GroupeController;
 
 
 // Public routes
@@ -18,7 +19,14 @@ Route::apiResource('professors', ProfessorController::class);
 Route::apiResource('options', OptionController::class);
 Route::apiResource('companies', CompanyController::class);
 
+// Check if a student is part of a groupe
+Route::get('/groupes/check/{studentId}', [GroupeController::class, 'checkGroupe']);
 
+// Update the invitation state of a groupe
+Route::post('/groupes/{groupeId}/update-invitation', [GroupeController::class, 'updateInvitation']);
+
+// Create a new groupe
+Route::post('/groupes/create', [GroupeController::class, 'createGroupe']);
 
 
 // Protected routes
