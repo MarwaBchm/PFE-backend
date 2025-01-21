@@ -40,6 +40,8 @@ class BulkUserController extends Controller
 
         // Process each row
         $createdUsers = [];
+        $errors = [];
+
         foreach ($csvData as $row) {
             // Map the row data to an associative array
             $rowData = array_combine($header, $row);
@@ -60,6 +62,10 @@ class BulkUserController extends Controller
 
             // If validation fails, log the error and skip the row
             if ($validator->fails()) {
+                $errors[] = [
+                    'row' => $rowData,
+                    'errors' => $validator->errors(),
+                ];
                 Log::error('Validation failed for row:', [
                     'row' => $rowData,
                     'errors' => $validator->errors(),
@@ -77,63 +83,83 @@ class BulkUserController extends Controller
             $username = $this->makeUsernameUnique($username);
 
             // Create the user
-            $user = User::create([
-                'email' => $rowData['email'],
-                'username' => $username,
-                'password' => Hash::make($password),
-                'role' => $rowData['role'],
-            ]);
+            try {
+                $user = User::create([
+                    'email' => $rowData['email'],
+                    'username' => $username,
+                    'password' => Hash::make($password),
+                    'role' => $rowData['role'],
+                ]);
 
-            // Send welcome email with the generated password and username
-            Mail::to($user->email)->send(new UserCreatedMail($user, $password, $username));
+                // Send welcome email with the generated password and username
+                Mail::to($user->email)->send(new UserCreatedMail($user, $password, $username));
 
-            // Log the user creation
-            Log::info('User created:', $user->toArray());
+                // Log the user creation
+                Log::info('User created:', $user->toArray());
 
-            // Create role-specific records
-            switch ($rowData['role']) {
-                case 'student':
-                    Student::create([
-                        'firstname' => $rowData['firstname'],
-                        'lastname' => $rowData['lastname'],
-                        'master_average' => $rowData['master_average'],
-                        'ranking' => 0, // Temporary value, will be updated later
-                        'user_id' => $user->id,
-                    ]);
-                    break;
+                // Create role-specific records
+                switch ($rowData['role']) {
+                    case 'student':
+                        Student::create([
+                            'firstname' => $rowData['firstname'],
+                            'lastname' => $rowData['lastname'],
+                            'master_average' => $rowData['master_average'],
+                            'ranking' => 0, // Temporary value, will be updated later
+                            'user_id' => $user->id,
+                        ]);
+                        break;
 
-                case 'professor':
-                    Professor::create([
-                        'firstname' => $rowData['firstname'],
-                        'lastname' => $rowData['lastname'],
-                        'grade' => $rowData['grade'],
-                        'recruitment_date' => $rowData['recruitment_date'],
-                        'user_id' => $user->id,
-                    ]);
-                    break;
+                    case 'professor':
+                        Professor::create([
+                            'firstname' => $rowData['firstname'],
+                            'lastname' => $rowData['lastname'],
+                            'grade' => $rowData['grade'],
+                            'recruitment_date' => $rowData['recruitment_date'],
+                            'user_id' => $user->id,
+                        ]);
+                        break;
 
-                case 'company':
-                    Company::create([
-                        'firstname' => $rowData['firstname'],
-                        'lastname' => $rowData['lastname'],
-                        'denomination' => $rowData['denomination'],
-                        'contact' => $rowData['contact'],
-                        'type' => $rowData['type'],
-                        'user_id' => $user->id,
-                    ]);
-                    break;
+                    case 'company':
+                        Company::create([
+                            'firstname' => $rowData['firstname'],
+                            'lastname' => $rowData['lastname'],
+                            'denomination' => $rowData['denomination'],
+                            'contact' => $rowData['contact'],
+                            'type' => $rowData['type'],
+                            'user_id' => $user->id,
+                        ]);
+                        break;
+                }
+
+                // Add the created user to the response
+                $createdUsers[] = $user;
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'row' => $rowData,
+                    'errors' => $e->getMessage(),
+                ];
+                Log::error('User creation failed for row:', [
+                    'row' => $rowData,
+                    'error' => $e->getMessage(),
+                ]);
+                continue;
             }
-
-            // Add the created user to the response
-            $createdUsers[] = $user;
         }
 
         // Calculate and update rankings for students
         $this->updateStudentRankings();
 
         // Return a response
+        if (count($errors) > 0) {
+            return response()->json([
+                'message' => 'Some users were not created due to errors.',
+                'created_users' => $createdUsers,
+                'errors' => $errors,
+            ], 207); // 207 Multi-Status
+        }
+
         return response()->json([
-            'message' => 'Users created successfully',
+            'message' => 'All users created successfully',
             'created_users' => $createdUsers,
         ], 201);
     }

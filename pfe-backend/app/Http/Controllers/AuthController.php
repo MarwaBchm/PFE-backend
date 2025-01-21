@@ -32,6 +32,7 @@ class AuthController extends Controller
             'contact' => 'required_if:role,company',
             'type' => 'required_if:role,company',
             'master_average' => 'required_if:role,student|numeric|min:0|max:20',
+            'option_id' => 'required_if:role,student|exists:options,id', // Ensure option_id exists in options table
         ]);
 
         // If validation fails, return errors
@@ -71,6 +72,7 @@ class AuthController extends Controller
                     'master_average' => $request->master_average,
                     'ranking' => 0,
                     'user_id' => $user->id,
+                    'option_id' => $request->option_id, // Add option_id
                 ]);
                 break;
 

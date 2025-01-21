@@ -3,79 +3,109 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
-    // Display a listing of the students
+    /**
+     * Display a listing of all students.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
-        $students = Student::all();
-        return view('students.index', compact('students'));
+        // Eager load the user relationship to avoid N+1 query problem
+        $students = Student::with('user')->get();
+        return response()->json($students);
     }
 
-    // Show the form for creating a new student
-    public function create()
+    /**
+     * Display the specified student.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
     {
-        return view('students.create');
+        $student = Student::with('user')->find($id);
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        return response()->json($student);
     }
 
-    // Store a newly created student in the database
-    public function store(Request $request)
+    /**
+     * Update the specified student in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'firstname' => 'required',
-            'lastname' => 'required',
-            'option_id' => 'required|exists:options,id',
-            'groupe_id' => 'required|exists:groupes,id',
-            'master_average' => 'nullable|numeric',
-            'ranking' => 'nullable|integer',
-            'user_id' => 'required|exists:users,id',
+        $student = Student::find($id);
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'firstname' => 'sometimes|required|string|max:255',
+            'lastname' => 'sometimes|required|string|max:255',
+            'option_id' => 'sometimes|required|exists:options,id',
+            'groupe_id' => 'sometimes|required|exists:groupes,id',
+            'master_average' => 'sometimes|nullable|numeric',
+            'ranking' => 'sometimes|nullable|integer',
+            'user_id' => 'sometimes|required|exists:users,id',
         ]);
 
-        Student::create($request->all());
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-        return redirect()->route('students.index')
-                         ->with('success', 'Student created successfully.');
+        // Update the student's information
+        $student->update($request->only(['firstname', 'lastname', 'option_id', 'groupe_id', 'master_average', 'ranking']));
+
+        // Update the associated user's email if provided
+        if ($request->has('user_id')) {
+            $user = User::find($student->user_id);
+            if ($user) {
+                $user->email = $request->email ?? $user->email;
+                $user->save();
+            }
+        }
+
+        return response()->json(['message' => 'Student updated successfully', 'student' => $student]);
     }
 
-    // Display the specified student
-    public function show(Student $student)
+    /**
+     * Remove the specified student from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
     {
-        return view('students.show', compact('student'));
-    }
+        $student = Student::find($id);
 
-    // Show the form for editing the specified student
-    public function edit(Student $student)
-    {
-        return view('students.edit', compact('student'));
-    }
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
 
-    // Update the specified student in the database
-    public function update(Request $request, Student $student)
-    {
-        $request->validate([
-            'firstname' => 'required',
-            'lastname' => 'required',
-            'option_id' => 'required|exists:options,id',
-            'groupe_id' => 'required|exists:groupes,id',
-            'master_average' => 'nullable|numeric',
-            'ranking' => 'nullable|integer',
-            'user_id' => 'required|exists:users,id',
-        ]);
+        // Delete the associated user
+        $user = User::find($student->user_id);
+        if ($user) {
+            $user->delete();
+        }
 
-        $student->update($request->all());
-
-        return redirect()->route('students.index')
-                         ->with('success', 'Student updated successfully.');
-    }
-
-    // Remove the specified student from the database
-    public function destroy(Student $student)
-    {
+        // Delete the student
         $student->delete();
 
-        return redirect()->route('students.index')
-                         ->with('success', 'Student deleted successfully.');
+        return response()->json(['message' => 'Student deleted successfully']);
     }
 }

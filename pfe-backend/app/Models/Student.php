@@ -13,7 +13,6 @@ class Student extends Model
         'firstname',
         'lastname',
         'option_id',
-        'groupe_id',
         'master_average',
         'ranking',
         'user_id',
@@ -29,17 +28,13 @@ class Student extends Model
         return $this->belongsTo(Option::class);
     }
 
-    public function groupe()
-    {
-        return $this->belongsTo(Groupe::class);
-    }
     public function pfeChoixStudents()
-{
-    return $this->hasMany(PFEChoixStudent::class, 'student_id');
-}
+    {
+        return $this->hasMany(PFEChoixStudent::class, 'student_id');
+    }
 
-public function encadrantChoixStudents()
-{
-    return $this->hasMany(EncadrantChoixStudent::class, 'student_id');
-}
+    public function encadrantChoixStudents()
+    {
+        return $this->hasMany(EncadrantChoixStudent::class, 'student_id');
+    }
 }
