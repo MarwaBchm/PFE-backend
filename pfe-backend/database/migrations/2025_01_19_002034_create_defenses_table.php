@@ -9,25 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('company', function (Blueprint $table) {
+        Schema::create('defenses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
+            $table->string('session');
             $table->timestamps();
-            $table->unsignedBigInteger('user_id'); // Foreign key to the users table
-            $table->string('name');
-            $table->foreign('user_id')
-            ->references('id')
-            ->on('users')
-            ->onDelete('cascade');
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('company');
+        Schema::dropIfExists('defenses');
     }
 };
